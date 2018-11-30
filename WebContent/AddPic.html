@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>上传图片</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+	</head>
+	<body>
+		
+		<div class="container">
+			
+			<form id="form1" class="form-horizontal">
+				<div class="form-group">
+					<label for="" class="col-sm-2">选择图片</label>
+					<div class="col-sm-8">
+						<input type="file" id="picData" name="picData" 
+							 class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">图片描述</label>
+					<div class="col-sm-8">
+						<input type="text" id="picInfo" name="picInfo" 
+							placeholder="请输入图片描述" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">					
+					<div class="col-sm-8 col-sm-offset-2">
+						<input id="addBtn" type="button" value="上传图片" class="btn btn-success"/>
+						<input type="button" value="取消" class="btn btn-danger" onclick="window.parent.layer.closeAll();" />
+					</div>
+				</div>
+				<div class="form-group">	
+					<div class="col-sm-8 col-sm-offset-2">
+						<div class="progress" style="display: none;">
+				        	<div id="son" class="progress-bar progress-bar-success progress-bar-striped active" style="width:0%;"> 
+				        		0%
+				            </div>        
+				        </div>
+				        
+				        <img src="" id="previewImg" class="img-responsive" />
+				        
+					</div>
+				</div>
+			</form>
+			
+		</div>		
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		
+		<script>
+			$(function() {
+				
+				//选择文件后进行事件处理
+				$('#picData').change(function() {
+					
+					var file = this.files[0];
+					
+					//判断是否是图片类型
+					if(file.type.match(/image/) == null){
+						layer.msg('请选择一个图片类型的文件');
+						this.value = '';
+						return false;
+					}
+					
+					//判断文件大小
+					if(file.size > 1024 * 1024){
+						layer.msg('图片大小不能超过1M');
+						this.value = '';
+						return false;
+					}
+					
+					//显示预览图
+					var fr = new FileReader();
+					
+					fr.readAsDataURL(file);
+					
+					fr.onload = function() {
+						$('#previewImg').attr('src',this.result);
+					}
+					
+				});
+				
+				//单击上传图片按钮事件
+				$('#addBtn').click(function() {
+					
+					//文件对象
+					var file = $('#picData').get(0).files[0];
+					
+					//判断是否选择文件
+					if(file == undefined){
+						layer.msg('请先选择一个文件');
+						$('#picData').focus();
+						return false;
+					}
+					
+					//判断文件描述
+					var picInfo = $('#picInfo');
+					
+					if(picInfo.val() == '' || picInfo.val().length > 30){
+						layer.msg('文件描述不能为空且最多30字符');
+						picInfo.focus();
+						return false;
+					}
+					
+					//显示进度条
+					$('.progress').show();
+					
+					//创建FormData对象（表单数据对象）
+					var formData = new FormData();
+					
+					//添加表单数据
+					formData.append('picData',file);
+					formData.append('picInfo',picInfo.val());
+					
+					$.ajax({
+						url:baseUrl + '/pic/add',
+						type:'POST',
+						data:formData,
+						processData:false,	//必须设置false
+						contentType:false,	//必须设置false
+						xhr:function(){
+							//获得XMLHttpRquest对象
+							var xhr = $.ajaxSettings.xhr();
+							
+							if(xhr.upload){
+								xhr.upload.addEventListener('progress',progress,false);
+							}
+							return xhr;
+						}
+					})
+					.done(function() {
+						layer.msg('上传成功');
+						
+						//刷新父窗口
+						window.parent.location.reload();
+						//关闭模态层
+						window.parent.layer.closeAll();
+					})
+					.fail(function() {
+						alert('请求失败');
+					});
+					//上传进度事件回调函数
+					function progress(e){
+						
+						var loaded = e.loaded;//已经上传的大小
+						var total = e.total;//附件总大小
+						var pct = Math.floor(loaded / total * 100);//上传百分比
+						
+						//设置进度条的宽度和显示文字
+						$('#son').css('width',pct + '%');
+						$('#son').html(pct + '%');
+						
+					}
+					
+					
+				});
+				
+			});		
+		</script>
+		
+	</body>
+</html>

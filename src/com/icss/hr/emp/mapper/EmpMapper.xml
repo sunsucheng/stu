@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.icss.hr.emp.dao.EmpMapper">
+	<resultMap id="BaseResultMap" type="com.icss.hr.emp.pojo.Emp">
+		<id column="EMP_ID" property="empId" jdbcType="DECIMAL" />
+		<result column="EMP_NAME" property="empName" jdbcType="VARCHAR" />
+		<result column="EMP_LOGIN_NAME" property="empLoginName"
+			jdbcType="VARCHAR" />
+		<result column="EMP_PWD" property="empPwd" jdbcType="VARCHAR" />
+		<result column="EMP_EMAIL" property="empEmail" jdbcType="VARCHAR" />
+		<result column="EMP_PHONE" property="empPhone" jdbcType="VARCHAR" />
+		<result column="EMP_HIREDATE" property="empHiredate" jdbcType="DATE" />
+		<result column="EMP_CLASS" property="empClass" jdbcType="DECIMAL" />
+		<result column="EMP_INFO" property="empInfo" jdbcType="VARCHAR" />
+		
+		<!-- 多对一关联部门 -->
+		<association property="dept" javaType="com.icss.hr.dept.pojo.Dept">
+			<id column="DEPT_ID" property="deptId" jdbcType="DECIMAL" />
+			<result column="DEPT_NAME" property="deptName" jdbcType="VARCHAR" />
+			<result column="DEPT_LOC" property="deptLoc" jdbcType="VARCHAR" />
+		</association>
+		<!-- 多对一关联职务 -->
+		<association property="job" javaType="com.icss.hr.job.pojo.Job">
+			<id column="JOB_ID" property="jobId" jdbcType="DECIMAL" />
+			<result column="JOB_NAME" property="jobName" jdbcType="VARCHAR" />
+			<result column="JOB_MIN_CLS" property="jobMinCls" jdbcType="DECIMAL" />
+			<result column="JOB_MAX_CLS" property="jobMaxCls" jdbcType="DECIMAL" />
+		</association>
+	</resultMap>
+	<resultMap id="ResultMapWithBLOBs" type="com.icss.hr.emp.pojo.Emp"
+		extends="BaseResultMap">
+		<result column="EMP_PIC" property="empPic" jdbcType="CLOB" />
+	</resultMap>
+	
+	<insert id="insert" parameterType="com.icss.hr.emp.pojo.Emp">
+		insert into EMP (EMP_ID, EMP_NAME, EMP_LOGIN_NAME,
+		EMP_PWD, EMP_EMAIL, EMP_PHONE,
+		EMP_HIREDATE, EMP_CLASS, EMP_DEPT_ID,
+		EMP_JOB_ID, EMP_INFO, EMP_PIC
+		)
+		values (default, #{empName,jdbcType=VARCHAR},
+		#{empLoginName,jdbcType=VARCHAR},
+		#{empPwd,jdbcType=VARCHAR}, #{empEmail,jdbcType=VARCHAR}, #{empPhone,jdbcType=VARCHAR},
+		#{empHiredate,jdbcType=DATE}, #{empClass,jdbcType=DECIMAL},
+		#{dept.deptId,jdbcType=DECIMAL},
+		#{job.jobId,jdbcType=DECIMAL}, #{empInfo,jdbcType=VARCHAR}, #{empPic,jdbcType=CLOB}
+		)
+	</insert>
+	
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from EMP
+		where EMP_ID = #{empId,jdbcType=DECIMAL}
+	</delete>
+	
+	<select id="queryByPage" resultMap="BaseResultMap" parameterType="com.icss.hr.common.Pager">
+		SELECT
+		e.emp_id,
+		e.emp_name,
+		e.emp_email,
+		e.emp_phone,
+		e.emp_info,
+		d.dept_name,
+		j.job_name
+		FROM emp e
+		LEFT OUTER JOIN dept d ON e.emp_dept_id = d.dept_id
+		LEFT
+		OUTER JOIN job j ON e.emp_job_id = j.job_id
+		ORDER BY e.emp_id
+		LIMIT ${start},${pageSize}
+	</select>
+	
+	<select id="getCount" resultType="java.lang.Integer">
+		select count(*) from emp
+	</select>
+	
+	<update id="update" parameterType="com.icss.hr.emp.pojo.Emp">
+		update EMP
+		set EMP_PHONE = #{empPhone,jdbcType=VARCHAR},
+		EMP_HIREDATE = #{empHiredate,jdbcType=DATE},
+		EMP_CLASS = #{empClass,jdbcType=DECIMAL},
+		EMP_DEPT_ID = #{dept.deptId,jdbcType=DECIMAL},
+		EMP_JOB_ID = #{job.jobId,jdbcType=DECIMAL},
+		EMP_INFO = #{empInfo,jdbcType=VARCHAR} 
+		where EMP_ID = #{empId,jdbcType=DECIMAL}
+	</update>
+	
+	<select id="queryById" resultMap="BaseResultMap"
+		parameterType="com.icss.hr.emp.pojo.Emp">
+		select e.*,e.emp_dept_id dept_id,e.emp_job_id job_id 
+		from emp e
+		where EMP_ID = #{empId,jdbcType=DECIMAL}
+	</select>
+	
+	<select id="queryByName" resultMap="BaseResultMap"
+		parameterType="com.icss.hr.emp.pojo.Emp">
+		select *
+		from EMP
+		where EMP_LOGIN_NAME = #{empLoginName,jdbcType=VARCHAR}
+	</select>
+	
+	<update id="updateEmpPwd" parameterType="com.icss.hr.emp.pojo.Emp">
+		update EMP
+		set
+		EMP_PWD = #{empPwd,jdbcType=VARCHAR}
+		where EMP_LOGIN_NAME = #{empLoginName,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="updateEmpPic" parameterType="com.icss.hr.emp.pojo.Emp">
+		update EMP
+		set
+		EMP_PIC = #{empPic,jdbcType=CLOB}
+		where EMP_LOGIN_NAME = #{empLoginName,jdbcType=VARCHAR}
+	</update>
+	
+	<select id="queryEmpPic" resultType="java.lang.String"
+		parameterType="java.lang.String">
+		select EMP_PIC
+		from EMP
+		where EMP_LOGIN_NAME = #{empLoginName,jdbcType=VARCHAR}
+	</select>
+	
+	<select id="queryByCondition" resultMap="BaseResultMap">
+		SELECT
+		e.emp_id,
+		e.emp_name,
+		e.emp_email,
+		e.emp_phone,
+		d.dept_name,
+		j.job_name
+		FROM emp e
+		LEFT OUTER JOIN dept d ON e.emp_dept_id = d.dept_id
+		LEFT
+		OUTER JOIN job j ON e.emp_job_id = j.job_id
+		<where>
+			<if test="deptId != null">
+				and d.dept_id = #{deptId}
+			</if>
+			<if test="jobId != null">
+				and j.job_id = #{jobId}
+			</if>
+			<if test="empName != null and empName != ''">
+				and instr(e.emp_name,#{empName}) > 0
+			</if>
+		</where>
+		ORDER BY e.emp_id
+		LIMIT ${pager.start},${pager.pageSize}
+	</select>
+	
+	<select id="getCountByCondition" resultType="java.lang.Integer">
+		select count(*) from emp e
+		<where>
+			<if test="deptId != null">
+				and e.emp_dept_id = #{deptId}
+			</if>
+			<if test="jobId != null">
+				and e.emp_job_id = #{jobId}
+			</if>
+			<if test="empName != null and empName != ''">
+				and instr(e.emp_name,#{empName}) > 0
+			</if>
+		</where>
+	</select>
+	
+	<select id="getLastInsertId" resultType="java.lang.Integer">
+		select last_insert_id()
+	</select>
+	
+	
+</mapper>

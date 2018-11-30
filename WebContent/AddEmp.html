@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>增加新成员</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+		<link rel="stylesheet" href="js/datetimepicker/jquery.datetimepicker.css" />
+	</head>
+	<body>
+		
+		<div class="container">
+			
+			<ol class="breadcrumb">
+				<li><a href="#">学生会人力资源管理系统</a></li>
+				<li><a href="#">成员管理</a></li>
+				<li>增加新成员</li>
+			</ol>
+			
+			<h2 class="page-header">增加新成员</h2>
+			
+			<form id="form1" class="form-horizontal">
+				<div class="form-group">
+					<label for="" class="col-sm-2">成员名称</label>
+					<div class="col-sm-8">
+						<input type="text" id="empName" name="empName" 
+							placeholder="请输入成员姓名" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">登录账号</label>
+					<div class="col-sm-8">
+						<input type="text" id="empLoginName" name="empLoginName" 
+							placeholder="请输入登录账号" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">初始密码</label>
+					<div class="col-sm-8">
+						<input type="password" id="empPwd" name="empPwd" 
+							placeholder="请输入初始密码" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">确认密码</label>
+					<div class="col-sm-8">
+						<input type="password" id="empPwd2" name="empPwd2" 
+							placeholder="请再次输入密码" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">电子邮件</label>
+					<div class="col-sm-8">
+						<input type="text" id="empEmail" name="empEmail" 
+							placeholder="请输入电子邮件" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">电话号码</label>
+					<div class="col-sm-8">
+						<input type="text" id="empPhone" name="empPhone" 
+							placeholder="请输入电话号码" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">入职日期</label>
+					<div class="col-sm-8">
+						<input type="text" id="empHiredate" name="empHiredate" 
+							placeholder="请输入入职日期" class="form-control" />
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label for="" class="col-sm-2">成员年级</label>
+					<div class="col-sm-8">
+						<input type="text" id="empClass" name="empClass" 
+							placeholder="请输入成员的年级" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">部门</label>
+					<div class="col-sm-8">
+						<select name="dept.deptId" id="deptId" class="form-control">
+							<option value="">请选择部门</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">职务</label>
+					<div class="col-sm-8">
+						<select name="job.jobId" id="jobId" class="form-control">
+							<option value="">请选择职务</option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">成员简介</label>
+					<div class="col-sm-8">
+						<textarea name="empInfo" id="empInfo" rows="5" class="form-control" placeholder="请输入员工简介">
+							
+						</textarea>
+					</div>
+				</div>
+				
+				<div class="form-group">					
+					<div class="col-sm-8 col-sm-offset-2">
+						<input id="addBtn" type="button" value="增加员工" class="btn btn-success"/>
+						<input type="button" value="取消" class="btn btn-danger" onclick="history.back();" />
+					</div>
+				</div>
+			</form>
+			
+		</div>		
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		<script type="text/javascript" src="js/datetimepicker/jquery.datetimepicker.js" ></script>
+		
+		
+		<script>
+			$(function() {
+				
+				//绑定日历插件到入职日期
+				$('#empHiredate').datetimepicker({
+					lang:'ch',
+					format:'Y-m-d',
+					formatDate:'Y-m-d',
+					timepicker:false
+				});
+				
+				//动态生成部门列表
+				$.getJSON(baseUrl + "/dept/query",function(data){
+					
+					//遍历响应的数据集合
+					$.each(data, function(index,el) {
+						
+						var opt = '<option value="' + el.deptId + '">' + el.deptName + '</option>';
+						
+						$('#deptId').append(opt);
+						
+					});
+					
+				})
+				.error(function() {
+					layer.msg('请求失败');
+				});
+				
+				//动态生成职务列表
+				$.getJSON(baseUrl + "/job/query",function(data){
+					
+					//遍历响应的数据集合
+					$.each(data, function(index,el) {
+						
+						var opt = '<option value="' + el.jobId + '">' + el.jobName + '</option>';
+						
+						$('#jobId').append(opt);
+						
+					});
+					
+				})
+				.error(function() {
+					layer.msg('请求失败');
+				});
+				
+				//验证用户名是否存在
+				$('#empLoginName').change(function() {
+					
+					$.post(baseUrl + '/emp/checkLoginName',{empLoginName:$('#empLoginName').val()},function(data){
+						if(data == 'true'){
+							layer.msg('这个登录名已存在');
+							$('#empLoginName').focus();
+						}
+					})
+					.error(function() {
+						layer.msg('请求用户名失败');
+					});
+					
+				});
+				
+				//表单验证函数
+				function checkForm() {
+					
+					//姓名验证
+					var empName = $('#empName');
+					
+					if(empName.val() == '' || empName.val().length > 10){
+						layer.msg('成员姓名不能为空且最多10字符');
+						empName.focus();
+						return false;
+					}
+					
+					//登录名验证
+					var empLoginName = $('#empLoginName');
+					
+					if(empLoginName.val() == '' || empLoginName.val().length > 10){
+						layer.msg('登录名不能为空且最多10字符');
+						empLoginName.focus();
+						return false;
+					}
+					
+					//检查用户名是否存在（ajax同步请求）
+					var flag = 'true';
+					
+					$.ajax({
+						type:"POST",
+						url:baseUrl + "/emp/checkLoginName",
+						dataType:'text',
+						data:{empLoginName:empLoginName.val()},
+						async:false//同步请求
+					})
+					.done(function(data){
+						flag = data;
+					})
+					.fail(function(){
+						layer.msg('请求用户名失败');
+					});
+					
+					if (flag == 'true'){
+						layer.msg('这个登录名已存在');
+						empLoginName.focus();
+						return false;
+					}
+					
+					//密码验证，密码不能为空，且6~12位
+					var empPwd = $("#empPwd");
+					
+					r = /^.{6,12}$/;
+					
+					if (!r.test(empPwd.val())) {
+						layer.msg("初始密码为6~12位的字符");
+						empPwd.focus();
+						return false;
+					}
+										
+					//确认密码验证，必须两次密码输入一致
+					var empPwd2 = $("#empPwd2");
+					
+					if (empPwd2.val() != empPwd.val()) {
+						layer.msg("确认密码必须要和初始密码一致");
+						empPwd2.focus();
+						return false;
+					}
+										
+					//邮箱验证，不能为空，且必须符合邮箱格式
+					var empEmail = $("#empEmail");
+					
+					r = /(^\w+@\w+(\.[a-z]{2,3}){1,2}$)/;
+					
+					if (!r.test(empEmail.val()) || empEmail.val().length > 80) {
+						layer.msg("请输入符合格式的电子邮箱名称，最大80字符");
+						empEmail.focus();
+						return false;
+					}
+					
+					//电话号码验证，必须是手机号码格式
+					var empPhone = $("#empPhone");
+					
+					r = /^1[3-8]\d{9}$/;
+					
+					if (!r.test(empPhone.val())) {
+						layer.msg("请输入符合格式的电话号码");
+						empPhone.focus();
+						return false;
+					}
+					
+					//入职日期，不能为空
+					var empHiredate = $('#empHiredate');
+					
+					if (empHiredate.val() == "") {
+						layer.msg("入职日期不能为空，请选择一个日期");
+						empHiredate.focus();
+						return false;
+					}
+										
+					//年级验证，4位整数
+					var empClass = $('#empClass');
+					
+					r = /^20\d{2}$/;
+					
+					if (!r.test(empSalary.val())) {
+						layer.msg("成员年级必须为4位整数");
+						empClass.focus();
+						return false;
+					}
+										
+					//部门验证，必须选择部门
+					var deptId = $('#deptId');
+					
+					if (deptId.val() == "") {
+						layer.msg("成员必须有一个部门");
+						deptId.focus();
+						return false;
+					}					
+					
+					//职务验证，必须选择职务
+					var jobId = $('#jobId');
+					
+					if (jobId.val() == "") {
+						layer.msg("成员必须有一个职务");
+						jobId.focus();
+						return false;
+					}
+										
+					//员工简介不能为空，最多200字
+					var empInfo = $('#empInfo');
+					
+					if (empInfo.val() == "" || empInfo.val().length > 200) {
+						layer.msg("成员简介不能为空且不能超过200字");
+						empInfo.focus();
+						return false;
+					}	
+					
+					//判断成员年级是否符合职务年级范围
+					var jobMinCls;
+					var jobMaxCls;
+					
+					$.ajax({
+						url:baseUrl + '/GetJobServlet',
+						type:'POST',
+						dataType:'json',
+						data:{jobId:jobId.val()},
+						async:false //同步请求						
+					})
+					.done(function(data){
+						jobMinCls = parseInt(data.jobMinCls);
+						jobMaxCls = parseInt(data.jobMaxCls);
+					})
+					.fail(function(){
+						layer.msg('请求职务数据失败');
+					});	
+					
+					if ( parseInt(empClass.val()) > jobMinCls || parseInt(empClass.val()) < jobMaxCls ) {
+						empClass.focus();
+						layer.msg('年级必须符合职务的年级在' + jobMinCls + '到' + jobMaxCls + '之间');
+						return false;
+					}										
+					
+					return true;
+				}
+				
+				//增加成员
+				$('#addBtn').click(function() {
+					
+					//表单验证
+					if( !checkForm() )
+					return;
+					
+					//表单数据序列化
+					var param = $('#form1').serialize();
+					
+					$.post(baseUrl + '/emp/add',param,function(data) {
+						
+						var flag = window.confirm('增加成员成功,是否继续添加新成员？');
+						
+						if(flag){
+							$('#form1').get(0).reset();
+						}else{
+							location.href = 'QueryEmp.html';
+						}
+						
+					})
+					.error(function() {
+						layer.msg('增加成员请求失败');
+					});
+					
+					
+				});
+				
+			});
+			
+		</script>
+		
+	</body>
+</html>

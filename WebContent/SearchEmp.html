@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>检索成员</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+		<style>
+			.pagination{
+				margin-top: 0;
+			}
+		</style>
+	</head>
+	<body>
+		
+		<div class="container">
+			
+			<ol class="breadcrumb">
+				<li><a href="#">学生会人力资源管理系统</a></li>
+				<li><a href="#">成员管理</a></li>
+				<li>检索成员数据</li>				
+			</ol>
+			<h2 class="page-header">成员数据列表</h2>
+			
+			<div class="row" style="margin-bottom: 20px;">
+				<div class="col-sm-8">
+					<form class="form-inline" method="post">
+						<div class="form-group">
+							<label for="">部门</label>
+							<select name="deptId" id="deptId" class="form-control">
+								<option value="">不限</option>
+								
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="">职务</label>
+							<select name="jobId" id="jobId" class="form-control">
+								<option value="">不限</option>
+								
+							</select>
+						</div>
+						<div class="form-group">
+							<input type="text" name="empName" id="empName" value="" class="form-control" placeholder="请输入成员姓名关键字" />
+						</div>
+						<div class="form-group">
+							<input type="button" id="searchBtn" value="搜索成员" class="btn btn-primary" />
+						</div>
+					</form>
+				</div>
+				<div class="col-sm-4">
+					<a href="SearchEmpIndex.html" class="btn btn-info">切换到全文检索</a>
+				</div>
+			</div>
+			
+			<table id="dataTable" class="table table-bordered table-striped" v-show="pager.recordCount>0">
+				<thead>
+					<tr>
+						<th>成员编号</th>
+						<th>成员姓名</th>
+						<th>邮箱</th>
+						<th>电话</th>
+						<th>部门</th>
+						<th>职务</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="(emp,index) in empData">
+						<td>{{emp.empId}}</td>
+						<td>{{emp.empName}}</td>
+						<td>{{emp.empEmail}}</td>
+						<td>{{emp.empPhone}}</td>
+						<td>{{emp.dept.deptName}}</td>
+						<td>{{emp.job.jobName}}</td>
+						<td>
+							<a href="javascript:void(0);" @click="show(emp.empId);" class="btn btn-primary btn-sm update-btn" />
+								<span class="glyphicon glyphicon-pencil"></span>
+								详情
+							</a>
+							<button @click="del(emp.empId,index);" type="button"  class="btn btn-danger btn-sm del-btn" />
+								<span class="glyphicon glyphicon-trash"></span>
+								删除
+							</button>
+						</td>
+					</tr>
+				</tbody>
+				
+			</table>
+			
+			<!--未找到符合条件的数据提示-->
+			<div class="row" id="alert" style="display: none" v-show="pager.recordCount==0">
+				<div class="col-sm-12">
+					<div class="alert alert-info">
+						未找到符合条件的成员
+					</div>
+				</div>
+			</div>
+			
+			
+			<!--分页工具条-->
+			<div class="row" v-show="pager.recordCount>0">
+				<div class="col-sm-4">
+					共{{pager.recordCount}}条数据，{{pager.pageNum}}/{{pager.pageCount}}页,
+					从第{{pager.start+1}}条到第{{pager.end}}条
+				</div>
+				<div class="col-sm-8">
+					<nav>
+						<ul class="pagination pull-right">
+							<li v-show="pager.pageNum!=1"><a href="javascript:void(0);" @click="query(1)">首页</a></li>
+							<li v-show="pager.pageNum!=1"><a href="javascript:void(0);" @click="query(pager.pageNum-1)">上页</a></li>
+							
+							<li :class="{active:i==pager.pageNum}" v-for="(i,k) in pageBtns"><a href="javascript:void(0);" @click="query(i)">{{i}}</a></li>
+							
+							<li v-show="pager.pageNum!=pager.pageCount"><a href="javascript:void(0);" @click="query(pager.pageNum+1)">>下页</a></li>
+							<li v-show="pager.pageNum!=pager.pageCount"><a href="javascript:void(0);" @click="query(pager.pageCount)">>末页</a></li>
+						</ul>
+					</nav>
+				</div>
+			</div>
+			
+			<div class="row">
+				<div class="col-sm-offset-4 col-sm-4">
+					<a href="AddEmp.html" class="btn btn-success btn-block">
+						<span class="glyphicon glyphicon-plus"></span>
+						增加新成员
+					</a>
+				</div>
+				<div class="col-sm-4">
+					<a href="javascript:writeExcel;" class="btn btn-info btn-block">
+						<span class="glyphicon glyphicon-download"></span>
+						下载excek报表
+					</a>
+				</div>
+			</div>
+			
+		</div>
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		<script type="text/javascript" src="js/vue/vue2.5.js" ></script>
+		<script type="text/javascript" src="js/vue/vue-resource.js" ></script>
+		<script type="text/javascript" src="js/param.js" ></script>
+		
+		<script>
+			//条件值
+			var deptIdCond = '';
+			var jobIdCond = '';
+			var empNameCond = '';
+			
+			
+			
+			
+			//动态生成部门列表
+			$.getJSON(baseUrl + "/dept/query",function(data){
+				
+				//遍历响应的数据集合
+				$.each(data, function(index,el) {
+					
+					var opt = '<option value="' + el.deptId + '">' + el.deptName + '</option>';
+					
+					$('#deptId').append(opt);
+					
+				});
+				
+			})
+			.error(function() {
+				layer.msg('请求失败');
+			});
+			
+			//动态生成职务列表
+			$.getJSON(baseUrl + "/job/query",function(data){
+				
+				//遍历响应的数据集合
+				$.each(data, function(index,el) {
+					
+					var opt = '<option value="' + el.jobId + '">' + el.jobName + '</option>';
+					
+					$('#jobId').append(opt);
+					
+				});
+				
+			})
+			.error(function() {
+				layer.msg('请求失败');
+			});
+			
+			
+			var vue = new Vue({
+				el:'.container',
+				data:{
+					empData:[],//成员数组
+					pager:{},	//分页信息
+					pageBtns:[]	//分页按钮组
+				},
+				methods:{
+					//查询数据
+					query:function(pageNum) {
+						
+						//请求参数
+						var param = {
+							pageNum:pageNum,
+							pageSize:7,
+							deptId:deptIdCond,
+							jobId:jobIdCond,
+							empName:empNameCond
+							
+						}
+						
+						$.getJSON(baseUrl + '/emp/queryByCondition',param,function(data){
+							//响应结果赋值给vue数据模型
+							vue.empData = data.list;
+							vue.pager = data.pager;
+							
+							//生成分页页码
+							
+							var start = vue.pager.pageNum - 2;
+							var end = vue.pager.pageNum + 2;
+							
+							if(vue.pager.pageNum < 3){
+								start = 1;
+								end = 5;
+							}
+							if(end > vue.pager.pageCount){
+								end = vue.pager.pageCount;
+							}
+							
+							vue.pageBtns = [];
+							
+							for(var i = start;i <= end;i ++){
+								vue.pageBtns.push(i);
+							}
+							
+						})
+						.error(function(){
+							layer.msg('请求成员数据失败');
+						});
+						
+					},
+					//显示成员详情
+					show:function(empId){
+						layer.open({
+							title:'成员详情',
+							type:2,//2表示用iframe打开网页
+							area:['600px','700px'],
+							content:'UpdateEmp.html?empId=' + empId + '&pageNum=' + this.pager.pageNum
+						});
+					},
+					//删除成员
+					del:function(empId,index){
+						
+						var flag = window.confirm('确定要删除此成员吗');
+						
+						if(flag) {
+							$.post(baseUrl + '/emp/delete',{empId : empId},function(data) {
+								layer.msg('删除成员成功');
+								
+								//前端删除
+								vue.empData.splice(index,1);
+								
+							})
+							.error(function() {
+								layer.msg('删除成员请求失败');
+							});
+						}
+						
+					}
+				
+				}
+			});
+			
+			//初始调用查询数据方法
+			vue.query(1);
+			
+			//搜索按钮单击事件
+			$('#searchBtn').click(function() {
+				
+				//设置条件值
+				deptIdCond = $('#deptId').val();
+				jobIdCond = $('#jobId').val();
+				empNameCond = $('#empName').val();
+				
+				vue.query(1);
+				
+				
+			});
+			
+			/**
+			 * 下载excel报表
+			 */
+			function writeExcel() {
+				location.href = baseUrl + '/emp/writeExcel?deptId=' + deptIdCond + '&jobId=' + jobIdCond + '&empName=' + empNameCond;
+			}
+			
+			
+		</script>
+		
+	</body>
+</html>

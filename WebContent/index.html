@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>主页</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+	</head>
+	<body>
+		
+		<div class="container">
+			
+			<ol class="breadcrumb">
+				<li><a href="#">学生会人力资源管理系统</a></li>
+				<li>主页</li>
+			</ol>
+			
+			<div class="row">
+				<div class="col-sm-12" id="mapDiv" style="height: 500px;" >
+					
+				</div>
+			</div>
+			
+		</div>		
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=y5GZu9F0wZtSO7LC5Z7P6htKxq0e5TkG"></script>
+		
+		<script>			
+			/**
+			 * 定位成功的回调函数，参数就是坐标对象
+			 */
+			function showMap(){
+				
+				//经纬度
+				var lng = 121.55033;
+				var lat = 38.86775;				
+														
+				//创建地图对象
+				var map = new BMap.Map('mapDiv');
+				//创建坐标点对象
+				var point = new BMap.Point(lng,lat);
+											
+								
+				//添加地图类型控件，默认在地图右上方
+				map.addControl(new BMap.MapTypeControl());
+				//地图平移缩放控件，PC端默认地图左上方，移动端提供缩放控件，默认在地图右下方
+				map.addControl(new BMap.NavigationControl());
+				//比例尺控件，默认在地图左下方，显示地图的比例关系
+				map.addControl(new BMap.ScaleControl());
+				//缩略地图控件，默认在地图右下方，是一个可折叠的缩略地图
+				map.addControl(new BMap.OverviewMapControl());
+				//定位控件，针对于移动端，默认在地图左下方
+				map.addControl(new BMap.GeolocationControl());
+				//开启滚轮缩放
+				map.enableScrollWheelZoom(true);
+								
+				var convertor = new BMap.Convertor(); //转换坐标类的对象
+				var pointArr = []; //坐标数组
+				pointArr.push(point); //加入一个坐标对象（可以加入多个坐标对象）
+				convertor.translate(pointArr,1,5,translateCallback);//转换坐标					
+									
+				//转换完毕的回调函数，data就是转换后的数据
+				function translateCallback(data) {
+					
+					if (data.status == 0) { //0为转换成功
+						
+						var marker = new BMap.Marker(data.points[0]); //创建标记点
+						map.addOverlay(marker);//在地图上添加标记点
+						
+						//var label = new BMap.Label('学校',{offset:new BMap.Size(20,-20)}); //创建文字标签
+						//marker.setLabel(label); //添加标记的文字标签
+						
+						map.centerAndZoom(data.points[0],18);//调整地图中心点	
+						
+					}
+					
+				}				
+				
+			}
+			
+			showMap();
+		</script>
+
+	
+	</body>
+	
+</html>

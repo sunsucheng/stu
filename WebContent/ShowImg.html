@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+	</head>
+	<body>
+		
+		<img src="" alt="" id="img1" />
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/param.js" ></script>
+		
+		<script>
+			
+			//获得图片id
+			var picId = getParam('picId');
+			
+			//请求后端图片数据赋给图片src
+			var url = baseUrl + '/pic/get?picId=' + picId;
+			
+			$('#img1').attr('src',url);
+			
+			
+			
+		</script>
+		
+	</body>
+</html>

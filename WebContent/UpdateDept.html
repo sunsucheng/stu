@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>修改部门</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+	</head>
+	<body>
+		
+		<div class="container">
+			
+			<ol class="breadcrumb">
+				<li><a href="#">学生会人力资源管理系统</a></li>
+				<li><a href="#">部门管理</a></li>
+				<li>修改部门</li>				
+			</ol>
+			<h2 class="page-header">修改部门</h2>
+			
+			<form id="form1" class="form-horizontal" >
+				<div class="form-group">
+					<label for="" class="col-sm-2">部门名称</label>
+					<div class="col-sm-8">
+						<input type="text" name="deptName" id="deptName" 
+							placeholder="请输入部门名称" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<label for="" class="col-sm-2">部门地址</label>
+					<div class="col-sm-8">
+						<input type="text" name="deptLoc" id="deptLoc" 
+							placeholder="请输入部门职责" class="form-control" />
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-8 col-sm-offset-2">
+						<!--隐藏域存储部门的id-->
+						<input type="hidden" id="deptId" name="deptId" />
+						<input type="button" value="修改部门" class="btn btn-success" id="updateBtn" />
+						<input type="button" value="取消" class="btn btn-danger" onclick="history.back();" />
+					</div>
+				</div>
+			</form>
+			
+		</div>
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		<script type="text/javascript" src="js/param.js" ></script>
+		
+		<script>
+			
+			//获得deptId
+			var deptId = getParam('deptId');
+//			alert(deptId);
+			
+			$(function(){
+				
+				//发出ajax请求获得当前id对应的数据
+				$.getJSON(baseUrl + '/dept/get',{deptId:deptId},function(data){					
+					
+					//填充表单
+					$('#deptName').val(data.deptName);
+					$('#deptLoc').val(data.deptLoc);
+					$('#deptId').val(data.deptId);
+					
+				})
+				.error(function(){
+					layer.msg('请求失败');
+				});
+				
+				//表单验证函数
+				function checkForm() {
+					
+					var deptName = $('#deptName');
+															
+					if(deptName.val() == '' || deptName.val().length > 15){
+						layer.msg('部门名称不能为空且必须15字内');
+						deptName.focus();
+						return false;
+					}
+					
+					var deptLoc = $('#deptLoc');
+					
+					if(deptLoc.val() == '' || deptLoc.val().length >30){
+						layer.msg('部门职责不能为空并且必须30字内');
+						deptLoc.focus();
+						return false;
+					}
+					
+					return true;
+				}
+				
+				
+				//修改按钮单机事件
+				$('#updateBtn').click(function() {
+					
+					//表单验证
+					if(!checkForm()){
+						return;
+					}
+					
+					//加载层
+					layer.load();
+					
+					//请求参数
+					var params = $('#form1').serialize();
+					
+					//ajax请求
+					$.post(baseUrl + '/dept/update',params,function(data){
+						
+						layer.closeAll();
+						layer.msg('修改部门成功');
+						
+						setTimeout(function(){
+							location.href = 'QueryDept.html';
+						},1000);
+						
+					})
+					.error(function() {
+						
+						layer.closeAll();
+						layer.alert('请求失败');
+						
+					})
+					
+				});
+				
+				
+			});
+			
+		</script>
+		
+	</body>
+</html>

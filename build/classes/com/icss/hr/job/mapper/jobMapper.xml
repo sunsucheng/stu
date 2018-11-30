@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.icss.hr.job.dao.JobMapper">
+	<resultMap id="BaseResultMap" type="com.icss.hr.job.pojo.Job">
+		<id column="JOB_ID" property="jobId" jdbcType="DECIMAL" />
+		<result column="JOB_NAME" property="jobName" jdbcType="VARCHAR" />
+		<result column="JOB_MIN_CLS" property="jobMinCls" jdbcType="DECIMAL" />
+		<result column="JOB_MAX_CLS" property="jobMaxCls" jdbcType="DECIMAL" />
+	</resultMap>
+	
+	<insert id="insert" parameterType="com.icss.hr.job.pojo.Job">
+		insert into JOB (JOB_ID, JOB_NAME, JOB_MIN_CLS,
+		JOB_MAX_CLS)
+		values (default, #{jobName,jdbcType=VARCHAR},
+		#{jobMinCls,jdbcType=DECIMAL},
+		#{jobMaxCls,jdbcType=DECIMAL})
+	</insert>
+	
+	<update id="update" parameterType="com.icss.hr.job.pojo.Job">
+		update JOB
+		set JOB_NAME = #{jobName,jdbcType=VARCHAR},
+		JOB_MIN_CLS = #{jobMinCls,jdbcType=DECIMAL},
+		JOB_MAX_CLS = #{jobMaxCls,jdbcType=DECIMAL}
+		where JOB_ID = #{jobId,jdbcType=DECIMAL}
+	</update>
+	
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from JOB
+		where JOB_ID = #{jobId,jdbcType=DECIMAL}
+	</delete>
+	
+	<select id="queryById" resultMap="BaseResultMap"
+		parameterType="java.lang.Integer">
+		select
+		*
+		from JOB
+		where JOB_ID = #{jobId,jdbcType=DECIMAL}
+	</select>
+	
+	<select id="query" resultMap="BaseResultMap">
+		select * from job
+	</select>	
+	
+</mapper>

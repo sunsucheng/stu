@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>学生会图库</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+	</head>
+	<style>
+		.img-list img {
+			border: none;
+			width: 200px;
+		}
+		.img-list .item{
+			position: absolute;
+			background: #EEEEEE;
+			margin: 5px;
+			padding: 10px;
+		}		
+		.img-list p{
+			font-size: 12px;
+			color: #333333;
+			width: 200px;
+		}
+		.btn-del{
+			position: absolute;
+			top: 0;
+			right: 0;
+			display: none;
+		}
+		.btn-download{
+			position: absolute;
+			right: 0;
+			bottom: 0;
+			display: none;
+		}
+		.item:hover .btn-del{
+			display: block;
+		}
+		.item:hover .btn-download{
+			display: block;
+		}
+	</style>
+	
+	<body>
+		
+		<div class="container">
+			
+			<ol class="breadcrumb">
+				<li><a href="#">学生会人力资源管理系统</a></li>
+				<li><a href="#">学生会图库</a></li>
+				<li>图片展示</li>				
+			</ol>
+			<h2 class="page-header">图片展示列表</h2>
+			
+			<div class="row">
+				<div class="col-sm-offset-8 col-sm-4">
+					<div class="col-sm-6">
+						<a href="QueryPic.html" class="btn btn-warning btn-block">切换到手动版</a>
+					</div>
+					<div class="col-sm-6">
+						<input id="addBtn" type="button" value="上传图片" class="btn btn-success btn-block" />
+					</div>
+				</div>
+			</div>
+			
+			<div class="row img-list">
+				<div class="item" v-for="(pic,index) in picData">
+					<a :href="baseUrl + '/ShowImg.html?picId=' + pic.picId " target="_blank" :title="pic.picAuthor + '上传于' + pic.picDatetime">
+						<img :src="baseUrl + '/pic/get?picId=' + pic.picId" alt=""  />
+					</a>
+					<p>{{pic.picInfo}}</p>
+					<input type="button" value="删除" class="btn btn-danger btn-xs btn-del" @click="del(pic.picId,index);" />
+					<input type="button" value="下载" class="btn btn-info btn-xs btn-download" @click="download(pic.picId);" />
+				</div>
+			</div>
+			
+			<div class="row">
+				<input type="button" value="加载更多" class="btn btn-success btn-block" id="loadBtn" />
+			</div>
+			
+			
+		</div>
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		<script type="text/javascript" src="js/vue/vue2.5.js" ></script>
+		<script type="text/javascript" src="js/vue/vue-resource.js" ></script>
+		<script type="text/javascript" src="js/param.js" ></script>
+		<script type="text/javascript" src="js/masonry/jquery.masonry.js" ></script>
+		
+		<script>
+			var vue = new Vue({
+				el:'.container',
+				data:{
+					picData:[],
+					pager:{},
+					baseUrl:baseUrl
+					
+				},
+				methods:{
+					//查询图片数据
+					query:function(pageNum){
+						
+						$.getJSON(baseUrl + '/pic/query',{pageNum:pageNum,pageSize:20},function(data){
+							
+							//赋值给数据模型
+							$.each(data.list,function(index,item){
+								vue.picData.push(item);
+							});
+							
+							
+							vue.pager = data.pager;
+							
+							//判断是否已经是最后一页了
+							if(vue.pager.pageNum == vue.pager.pageCount){
+								$('#loadBtn').val('没有更多图片');
+								$('#loadBtn').prop('disabled',true);
+							}
+							
+							setTimeout(function() {
+								//应用瀑布流布局
+								var $container = $('.img-list'); 
+					
+							    $container.imagesLoaded(function(){
+							        $container.masonry({
+							            itemSelector: '.item',
+							            columnWidth: 5 //每两列之间的间隙为5像素
+							        });
+							    });
+							    
+							    //如果数据发生变化，必须重新生成瀑布流布局
+							    $container.masonry("reload");
+							},300);
+											
+						
+						})
+						.error(function() {
+							layer.msg('请求图片列表数据失败');
+						});
+						
+					},
+					//删除图片
+					del:function(picId,index){
+						
+						$.get(baseUrl + '/pic/delete',{picId:picId},function(data){
+							
+							//删除数据模型中的元素
+							vue.picData.splice(index,1);
+							
+							setTimeout(function() {
+								//应用瀑布流布局
+								var $container = $('.img-list'); 
+					
+							    $container.imagesLoaded(function(){
+							        $container.masonry({
+							            itemSelector: '.item',
+							            columnWidth: 5 //每两列之间的间隙为5像素
+							        });
+							    });
+							    
+							    //如果数据发生变化，必须重新生成瀑布流布局
+							    $container.masonry("reload");
+							},300);
+							
+						})
+						.error(function() {
+							layer.msg('删除图片请求失败');
+						});
+						
+					},
+					download:function(picId){
+						location.href = baseUrl + '/pic/download?picId=' + picId;
+					}
+					
+				}
+			});
+			
+			//初始调用
+			vue.query(1);
+			
+			//滚动条监听加载更多
+			$(window).scroll(function() {
+				
+				if($(window).scrollTop() + $(window).height() >= $(document).height()){
+					
+					if(vue.pager.pageNum == vue.pager.pageCount){
+						layer.msg('没有更多图片了');
+						return;
+					}
+					
+					vue.query(vue.pager.pageNum + 1);
+					
+					setTimeout(function() {
+						//应用瀑布流布局
+						var $container = $('.img-list'); 
+			
+					    $container.imagesLoaded(function(){
+					        $container.masonry({
+					            itemSelector: '.item',
+					            columnWidth: 5 //每两列之间的间隙为5像素
+					        });
+					    });
+					    
+					    //如果数据发生变化，必须重新生成瀑布流布局
+					    $container.masonry("reload");
+					},300);
+				}
+				
+				
+			});
+			
+			//显示上传图片画面
+			$('#addBtn').click(function() {
+				
+				layer.open({
+					title:'上传图片',
+					type:2,
+					area:['500px','600px'],
+					content:'AddPic.html'
+				});
+			});
+			
+		</script>
+		
+	</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>查询职务</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+	</head>
+	<body>
+		
+		<div class="container">
+			
+			<ol class="breadcrumb">
+				<li><a href="#">学生会人力资源管理系统</a></li>
+				<li><a href="#">职务管理</a></li>
+				<li>查询职务数据</li>				
+			</ol>
+			<h2 class="page-header">职务据列表</h2>
+			
+			<table id="dataTable" class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>职务编号</th>
+						<th>职务名称</th>
+						<th>最低年级</th>
+						<th>最高年级</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					
+				</tbody>
+				
+			</table>
+			
+			<div class="row">
+				<div class="col-sm-offset-4 col-sm-4">
+					<a href="AddJob.html" class="btn btn-success btn-block">
+						<span class="glyphicon glyphicon-plus"></span>
+						增加新职务
+					</a>
+				</div>
+				<div class="col-sm-4">
+					<a href="javascript:writeExcel()" class="btn btn-info btn-block">
+						<span class="glyphicon glyphicon-download"></span>
+						下载excek报表
+					</a>
+				</div>
+			</div>
+			
+			
+			
+		</div>
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		
+		<script>
+			
+			$(function(){
+				
+				//获得表格对象
+				var dataTable = $('#dataTable');
+				
+				//loaing层
+				layer.load(1);
+				
+				$.getJSON(baseUrl + "/job/query",function(data){
+					
+					layer.closeAll();
+					
+					
+					var htmlStr = '';
+					
+					//遍历响应的数据集合
+					$.each(data, function(index,el) {
+						
+						htmlStr = '';
+						htmlStr += '<tr>';
+						htmlStr += '	<td>' + el.jobId + '</td>';
+						htmlStr += '	<td>' + el.jobName + '</td>';
+						htmlStr += '	<td>' + el.jobMinCls + '</td>';
+						htmlStr += '	<td>' + el.jobMaxCls + '</td>';
+						htmlStr += '	<td>';
+						htmlStr += '		<a href="UpdateJob.html?jobId=' + el.jobId + '" class="btn btn-primary btn-sm update-btn" >';
+						htmlStr += '			<span class="glyphicon glyphicon-pencil"></span>';
+						htmlStr += '			修改';
+						htmlStr += '		</a>';
+						htmlStr += '		<button data-id="' + el.jobId + '" type="button"  class="btn btn-danger btn-sm del-btn" >';
+						htmlStr += '			<span class="glyphicon glyphicon-trash"></span>';
+						htmlStr += '			删除';
+						htmlStr += '		</button>';
+						htmlStr += '	</td>';
+						htmlStr += '</tr>';
+						
+						dataTable.append(htmlStr);
+						
+					});
+					
+					
+				})
+				.error(function(){
+					layer.alert('请求失败');
+				});
+				
+				//删除按钮单击事件
+				dataTable.on('click','.del-btn',function(e){
+					
+					var flag = window.confirm("确定要删除此职务吗");
+					
+					if(!flag)
+						return;
+					
+					//获得id
+					var jobId = $(this).attr('data-id');
+					
+					var that = this;
+					
+					//调用后端删除功能
+					$.get(baseUrl + '/job/delete',{jobId:jobId},function(){
+						layer.msg('删除职务成功');
+						
+						//删除当前tr
+						$(that).parents('tr').remove();
+						
+					})
+					.error(function(){
+						layer.msg('请求失败');
+					});
+					
+					
+				});
+				
+				
+			});
+			
+			//下载excel报表
+			function writeExcel() {
+				
+				location.href = baseUrl + "/job/writeExcel";
+				
+			}
+			
+		</script>
+		
+	</body>
+</html>

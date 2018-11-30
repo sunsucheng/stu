@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+</head>
+<body>
+	<div class="container">
+		
+		<ol class="breadcrumb">
+			<li><a href="#">学生会人力资源管理系统</a></li>
+			<li><a href="#">部门管理</a></li>
+			<li>星座查询</li>
+		</ol>
+		
+		<input class="form-control" type="text" id="consName" placeholder="请输入星座名称">
+		<select id="type" class="form-control">
+			<option value="today">今天</option>
+			<option value="tomorrow">明天</option>
+			<option value="week">本周</option>
+			<option value="nextweek">下周</option>
+			<option value="month">当月</option>
+		</select>
+		
+		<input class="btn btn-info" type="button" value="查看星座运势" id="showBtn">
+		<div id="result">
+			星座名称：<span id="name"></span>
+			<br>
+			日期：<span id="datetime"></span>
+			<br>
+			综合指数:<span id="all"></span>
+			<br>
+			健康指数：<span id="health"></span>
+			<br>
+			爱情指数：<span id="love"></span>
+			<br>
+			金钱指数：<span id="money"></span>
+			<br>
+			幸运数字：<span id="number"></span>
+			<br>
+			速配星座：<span id="QFriend"></span>
+			<br>
+			综述：<span id="summary"></span>
+		</div>
+		
+	</div>
+	
+
+	<script type="text/javascript" src="js/jquery.js" ></script>
+	<script type="text/javascript" src="js/global.js" ></script>
+	<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+	<script type="text/javascript" src="js/layer/layer.js" ></script>
+	
+	<script type="text/javascript">
+		$(function(){
+			
+			$('#showBtn').click(function(event) {
+				
+				// 星座互联网api接口
+				var url = baseUrl + '/ConsServlet';
+				
+				//请求参数
+				var param = {
+						consName:$('#consName').val(),
+						type:$('#type').val()
+				}
+				
+				// 发出ajax请求
+				$.getJSON(url,param,function(data) {
+
+
+					var result = data.result1;
+
+					if (result.resultcode != 200) {
+						alert('查询不到，请重新输入！');
+						return;
+					}
+
+					$('#name').text(result.name);
+					$('#datetime').text(result.datetime);
+					$('#all').text(result.all);
+					$('#health').text(result.health);
+					$('#love').text(result.love);
+					$('#money').text(result.money);
+					$('#number').text(result.number);
+					$('#QFriend').text(result.QFriend);
+					$('#summary').text(result.summary);
+				});
+
+			});
+
+		});
+	</script>
+</body>
+</html>

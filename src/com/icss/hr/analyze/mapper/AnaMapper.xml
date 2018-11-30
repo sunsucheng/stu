@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.icss.hr.analyze.dao.AnaMapper">
+	<resultMap id="BaseResultMap" type="com.icss.hr.analyze.dto.DeptEmpCount">
+		<result column="DEPT_NAME" property="deptName" jdbcType="VARCHAR" />
+		<result column="EMP_COUNT" property="empCount" jdbcType="DECIMAL" />
+	</resultMap>
+	
+	<select id="queryEmpCount" resultMap="BaseResultMap">
+		SELECT d.dept_name,
+		       COUNT(e.emp_id) emp_count
+		FROM   emp e
+		RIGHT  OUTER JOIN dept d ON e.emp_dept_id = d.dept_id
+		GROUP  BY d.dept_name
+	</select>
+	
+	<select id="queryAvgCls" resultType="java.util.HashMap">
+		SELECT j.job_name "jobName",
+        IFNULL(FLOOR(AVG(e.emp_class)),0) "avgCls"
+		FROM   emp e 
+		RIGHT  OUTER JOIN job j ON e.emp_job_id = j.job_id 
+		GROUP  BY j.job_name
+	</select>
+	
+	<select id="queryMinMaxCls" resultType="java.util.HashMap">
+		SELECT d.dept_name "deptName",
+		       IFNULL(MAX(e.emp_class),0) "maxCls",
+		       IFNULL(MIN(e.emp_class),0) "minCls" 
+		FROM   emp e 
+		RIGHT  OUTER JOIN dept d ON e.emp_dept_id = d.dept_id 
+		GROUP  BY d.dept_name
+	</select>
+	
+	<select id="queryDeptInfo" resultType="java.util.HashMap">
+		SELECT m.*,m.`deptName`,
+        m.`deptMaxCls` / 10 `deptMaxClsLevel`,
+        m.`deptMinCls` / 10 `deptMinClsLevel` 
+        FROM   (SELECT d.dept_name "deptName",
+               IFNULL(FLOOR(AVG(e.emp_class)),0) "deptAvgCls",
+               IFNULL(MAX(e.emp_class),0) "deptMaxCls",
+               IFNULL(MIN(e.emp_class),0) "deptMinCls",
+               COUNT(e.emp_id) "deptEmpCount" 
+        FROM   dept d  
+        LEFT   OUTER JOIN emp e ON d.dept_id = e.emp_dept_id 
+        GROUP  BY d.dept_name) m
+	</select>
+	
+	
+	
+</mapper>

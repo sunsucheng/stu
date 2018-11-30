@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>全文检索成员</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+		<style>
+			.pagination {
+				margin-top: 0!important;
+			}			
+		</style>
+	</head>
+	<body>
+		
+		<div class="container">
+			
+			<ol class="breadcrumb">
+				<li><a href="#">学生会人力资源管理系统</a></li>
+				<li><a href="#">成员管理</a></li>
+				<li>全文检索成员数据</li>
+			</ol>
+			
+			<h2 class="page-header">全文检索成员</h2>
+			
+			<div class="row" style="margin-bottom: 20px;">
+				<div class="col-sm-8">					
+					<div class="input-group">
+						<input type="text" placeholder="请输入搜索的成员姓名/电话/个人介绍" id="queryStr" name="queryStr" v-model="queryStr" class="form-control" />
+						<span class="input-group-btn">
+							<input type="button" value="全文检索" class="btn btn-primary" @click="query();"/>
+						</span>
+					</div>	
+				</div>
+				<div class="col-sm-4">
+					<a href="SearchEmp.html" class="btn btn-info">切换到普通检索</a>
+				</div>
+			</div>
+			
+			<table id="dataTable" class="table table-bordered table-striped" v-show="empData.length!=0">
+				<thead>
+					<tr>
+						<th>成员编号</th>
+						<th>成员姓名</th>						
+						<th>电话</th>
+						<th>成员简介</th>						
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>					
+					<tr v-for="(emp,index) in empData">
+						<td>{{emp.empId}}</td>
+						<td>{{emp.empName}}</td>						
+						<td>{{emp.empPhone}}</td>
+						<td>v-html="emp.empInfo"</td>						
+						<td>
+							<a href="javascript:void(0);" @click="show(emp.empId);" class="btn btn-primary btn-sm update-btn">
+								<span class="glyphicon glyphicon-pencil"></span>
+								详情
+							</a>							
+						</td>
+					</tr>
+				</tbody>				
+			</table>
+			
+			<!--未找到复合条件的数据提示-->
+			<div class="row" id="alert" v-show="empData.length==0">
+				<div class="col-sm-12">
+					<div class="alert alert-info">
+						未找到符合条件的成员
+					</div>
+				</div>
+			</div>
+			
+			<!--分页工具条-->
+			<div class="row" v-show="pager.recordCount>0">
+				<div class="col-sm-4">
+					<div>
+						共XXX条数据，XX/XXX页,
+						从第XXX条到第XXX条
+					</div>
+				</div>
+				<div class="col-sm-8">
+					<!--<nav>
+						<ul class="pagination pull-right">
+							<li v-show="pager.pageNum!=1"><a href="javascript:void(0);" @click="query(1);">首页</a></li>
+							<li v-show="pager.pageNum!=1"><a href="javascript:void(0);" @click="query(pager.pageNum-1);">上页</a></li>
+							
+							<li :class="{active:i==pager.pageNum}" v-for="(i,k) in pageBtns"><a href="javascript:void(0);" @click="query(i);">{{i}}</a></li>
+							
+							<li v-show="pager.pageNum!=pager.pageCount"><a href="javascript:void(0);" @click="query(pager.pageNum+1);">下页</a></li>
+							<li v-show="pager.pageNum!=pager.pageCount"><a href="javascript:void(0);" @click="query(pager.pageCount);">末页</a></li>
+						</ul>
+					</nav>-->
+				</div>				
+			</div>			
+						
+		</div>		
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		<script type="text/javascript" src="js/vue/vue2.5.js" ></script>
+		<script type="text/javascript" src="js/vue/vue-resource.js" ></script>
+		<script type="text/javascript" src="js/param.js" ></script>
+		
+		<script>	
+		
+			var vue = new Vue({
+				el:'.container',				
+				data:{
+					queryStr:'', //搜索关键字
+					empData:[], //成员数据
+					pager:{},    //分页信息
+					pageBtns:[]  //分页按钮组
+				},
+				methods:{
+					//利用jquery的ajax查询数据
+					query:function() {
+						
+						//判断关键字是否为空
+						if (vue.queryStr == '') {
+							layer.msg('请输入搜索关键字');
+							return;
+						}
+												
+						$.getJSON(baseUrl + '/emp/queryByIndex',{queryStr:vue.queryStr},function(data){
+							//把响应的数据赋给vue的数据模型
+							vue.empData = data;	
+						})
+						.error(function(){
+							layer.msg('请求成员数据失败');							
+						});												
+					},
+					//显示成员详情
+					show:function(empId) {
+						
+						layer.open({
+							title:'成员详情',
+							type:2, //2表示用iframe打开网页
+							area:['500px','600px'],
+							content:'UpdateEmp.html?empId=' + empId + '&pageNum=' +	this.pager.pageNum					
+						});						
+					}
+				}
+			});	
+			
+			
+					
+		</script>
+		
+	</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>查询部门</title>
+		<link rel="stylesheet" href="js/bootstrap/css/bootstrap.css" />
+	</head>
+	<body>
+		
+		<div class="container">
+			
+			<ol class="breadcrumb">
+				<li><a href="#">学生会人力资源管理系统</a></li>
+				<li><a href="#">部门管理</a></li>
+				<li>查询部门数据</li>				
+			</ol>
+			<h2 class="page-header">部门数据列表</h2>
+			
+			<table id="dataTable" class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th>部门编号</th>
+						<th>部门名称</th>
+						<th>部门职责</th>
+						<th>操作</th>
+					</tr>
+				</thead>
+				<tbody>
+					<!--<tr>
+						<td>10</td>
+						<td>生活部</td>
+						<td>职责</td>
+						<td>
+							<a href="#" class="btn btn-primary btn-sm update-btn" />
+								<span class="glyphicon glyphicon-pencil"></span>
+								修改
+							</a>
+							<button type="button"  class="btn btn-danger btn-sm del-btn" />
+								<span class="glyphicon glyphicon-trash"></span>
+								删除
+							</button>
+						</td>
+					</tr>-->
+				</tbody>
+				
+			</table>
+			
+			<div class="row">
+				<div class="col-sm-offset-4 col-sm-4">
+					<a href="AddDept.html" class="btn btn-success btn-block">
+						<span class="glyphicon glyphicon-plus"></span>
+						增加新部门
+					</a>
+				</div>
+				<div class="col-sm-4">
+					<a href="javascript:writeExcel()" class="btn btn-info btn-block">
+						<span class="glyphicon glyphicon-download"></span>
+						下载excek报表
+					</a>
+				</div>
+			</div>
+			
+			
+			
+		</div>
+		
+		<script type="text/javascript" src="js/jquery.js" ></script>
+		<script type="text/javascript" src="js/global.js" ></script>
+		<script type="text/javascript" src="js/bootstrap/js/bootstrap.js" ></script>
+		<script type="text/javascript" src="js/layer/layer.js" ></script>
+		
+		<script>
+			
+			$(function(){
+				
+				//获得表格对象
+				var dataTable = $('#dataTable');
+				
+				//loaing层
+				layer.load(1);
+				
+				$.getJSON(baseUrl + "/dept/query",function(data){
+					
+					layer.closeAll();
+					
+					
+					var htmlStr = '';
+					
+					//遍历响应的数据集合
+					$.each(data, function(index,el) {
+						
+						htmlStr = '';
+						htmlStr += '<tr>';
+						htmlStr += '	<td>' + el.deptId + '</td>';
+						htmlStr += '	<td>' + el.deptName + '</td>';
+						htmlStr += '	<td>' + el.deptLoc + '</td>';
+						htmlStr += '	<td>';
+						htmlStr += '		<a href="UpdateDept.html?deptId=' + el.deptId + '" class="btn btn-primary btn-sm update-btn" >';
+						htmlStr += '			<span class="glyphicon glyphicon-pencil"></span>';
+						htmlStr += '			修改';
+						htmlStr += '		</a>';
+						htmlStr += '		<button data-id="' + el.deptId + '" type="button"  class="btn btn-danger btn-sm del-btn" >';
+						htmlStr += '			<span class="glyphicon glyphicon-trash"></span>';
+						htmlStr += '			删除';
+						htmlStr += '		</button>';
+						htmlStr += '	</td>';
+						htmlStr += '</tr>';
+						
+						dataTable.append(htmlStr);
+						
+					});
+					
+					
+				})
+				.error(function(){
+					layer.alert('请求失败');
+				});
+				
+				//删除按钮单击事件
+				dataTable.on('click','.del-btn',function(e){
+					
+					var flag = window.confirm("确定要删除此部门吗");
+					
+					if(!flag)
+						return;
+					
+					//获得id
+					var deptId = $(this).attr('data-id');
+					
+					var that = this;
+					
+					//调用后端删除功能
+					$.get(baseUrl + '/dept/delete',{deptId:deptId},function(){
+						layer.msg('删除部门成功');
+						
+						//删除当前tr
+						$(that).parents('tr').remove();
+						
+					})
+					.error(function(){
+						layer.msg('请求失败');
+					});
+					
+					
+				});
+				
+				
+			});
+			
+			//下载excel报表
+			function writeExcel() {
+				
+				location.href = baseUrl + "/dept/writeExcel";
+				
+			}
+			
+		</script>
+		
+	</body>
+</html>
